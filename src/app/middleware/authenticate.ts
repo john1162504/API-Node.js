@@ -1,10 +1,10 @@
 import {Request, Response, NextFunction} from "express";
-import {findUserByToken} from '../models/user.models';
+import {findUserByColAttribute} from '../models/user.models';
 
 const loginRequired = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const token = req.get("X-Authorization");
     try {
-        const result = await findUserByToken(token);
+        const result = await findUserByColAttribute(token, "auth_token");
         if (result.length === 0) {
             res.statusMessage = 'Unauthorised';
             res.status(401).send();

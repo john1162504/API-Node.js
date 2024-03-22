@@ -28,15 +28,6 @@ const insert = async (firstName: string, lastName:
     return result;
 }
 
-const getOneByEmail = async (email: string): Promise<User[]> => {
-    Logger.info(`Getting user with email ${email} from table user`);
-    const conn = await getPool().getConnection();
-    const query = `SELECT * FROM user WHERE email = ?`;
-    const [ rows ] = await conn.query( query, email );
-    await conn.release();
-    return rows;
-}
-
 const insertToken = async (token: string, id: number): Promise<ResultSetHeader> => {
     Logger.info(`Inserting token to user: ${id}`);
     const conn = await getPool().getConnection();
@@ -46,13 +37,13 @@ const insertToken = async (token: string, id: number): Promise<ResultSetHeader> 
     return result;
 }
 
-const findUserByToken = async (token: string): Promise<User[]> => {
-    Logger.info(`Getting user with token: ${token}`);
+const findUserByColAttribute = async (param: string, col: string): Promise<User[]> => {
+    Logger.info(`Getting user with ${col}: ${param}`);
     const conn = await getPool().getConnection();
-    const query = 'SELECT * FROM user WHERE auth_token = ?';
-    const [ result ] = await conn.query(query, [ token ]);
+    const query = `SELECT * FROM user WHERE ${col} = ?`;
+    const [ result ] = await conn.query(query, [ param ]);
     await conn.release();
     return result;
 }
 
-export { checkEmailExist, insert, getOneByEmail, insertToken, findUserByToken };
+export { checkEmailExist, insert, findUserByColAttribute, insertToken };

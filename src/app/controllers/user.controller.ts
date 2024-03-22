@@ -50,7 +50,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
     const email = req.body.email;
     const password = req.body.password;
     try{
-        const result = await users.getOneByEmail(email);
+        const result = await users.findUserByColAttribute(email, "email");
         if (result.length === 0) {
             res.statusMessage = "Invalid information";
             res.status(400).send();
@@ -81,11 +81,23 @@ const login = async (req: Request, res: Response): Promise<void> => {
 }
 
 const logout = async (req: Request, res: Response): Promise<void> => {
+    const id = req.headers.authenticatedUserId;
+    Logger.info(req.headers.authenticatedUserId);
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        const result = await users.findUserByColAttribute(id.toString(), "id");
+        if (result.length === 0) {
+            res.statusMessage = "Not Found. No user with specified ID";
+            res.status(404).send();
+            return;
+        } else {
+            const user = result[0];
+            await users.insertToken(undefined, user.id);
+            res.json({"firstName": user.first_name,
+                      "lastName": user.last_name,
+                      "email": user.email});
+            res.status(200).send("OK");
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
