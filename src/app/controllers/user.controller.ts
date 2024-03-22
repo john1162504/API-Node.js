@@ -1,9 +1,10 @@
-import e, {Request, Response} from "express";
+import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import * as schemas from '../resources/schemas.json';
-import { validate } from '../validator';
+import {validate} from '../validator';
 import * as users from '../models/user.models'
 import * as encrypter from '../services/passwords'
+import {uid} from 'rand-token';
 
 const register = async (req: Request, res: Response): Promise<void> => {
     Logger.http(`POST create an user with first name: ${req.body.firstName}\n
@@ -13,7 +14,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
     const validation = await validate(
         schemas.user_register, req.body
     );
-    if (!validation) {
+    if (validation !== true) {
         res.statusMessage = `Bad Request: ${validation.toString()}`;
         res.status(400).send();
         return;
@@ -23,7 +24,6 @@ const register = async (req: Request, res: Response): Promise<void> => {
     const email = req.body.email;
     const password = await encrypter.hash(req.body.password);
     try{
-        // Your code goes here
         if (await users.checkEmailExist(email)) {
             res.statusMessage = 'Email already in use'
             res.status(403).send();
@@ -38,11 +38,40 @@ const register = async (req: Request, res: Response): Promise<void> => {
 }
 
 const login = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    Logger.http(`GET user with email ${req.body.email}`);
+    const validation = await validate(
+        schemas.user_login, req.body
+    );
+    if (validation !== true) {
+        res.statusMessage = `Bad Request: ${validation.toString()}`;
+        res.status(400).send();
         return;
+    }
+    const email = req.body.email;
+    const password = req.body.password;
+    try{
+        const result = await users.getOneByEmail(email);
+        if (result.length === 0) {
+            res.statusMessage = "Invalid information";
+            res.status(400).send();
+            return;
+        } else {
+            const user = result[0];
+            if (await encrypter.compare(password, user.password) === true) {
+                const token = uid(62); //
+                await users.insertToken(token, user.id);
+                req.headers["X-Authorization"] = token;
+                res.json({"userId": user.id,
+                        "token": token});
+                res.statusMessage = "OK";
+                res.status(200).send();
+                return;
+            } else {
+                res.statusMessage = "Incorrect email/password";
+                res.status(401).send();
+                return;
+            }
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

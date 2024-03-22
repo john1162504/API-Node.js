@@ -6,25 +6,25 @@ type User = {
     /**
      * Users email as entered when created
      */
-    email: String,
+    email: string,
     /**
      * Users first name as entered when created
      */
-    first_name: String,
+    first_name: string,
     /**
      * Users last name as entered when created
      */
-    last_name: String,
+    last_name: string,
     /**
      * TBD
      */
-    image_filename: String,
+    image_filename: string,
     /**
      * TBD
      */
-    password: String,
+    password: string,
     /**
      * TBD
      */
-    auth_token: String
+    auth_token: string
 }
