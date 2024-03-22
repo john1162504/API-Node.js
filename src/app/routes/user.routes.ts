@@ -15,7 +15,7 @@ module.exports = (app: Express) => {
         .post(loginRequired, user.logout);
 
     app.route(rootUrl+'/users/:id')
-        .get(loginRequired, user.view)
+        .get(user.view)
         .patch(loginRequired, user.update);
 
     app.route(rootUrl+'/users/:id/image')

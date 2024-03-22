@@ -5,6 +5,7 @@ import {validate} from '../validator';
 import * as users from '../models/user.models'
 import * as encrypter from '../services/passwords'
 import {uid} from 'rand-token';
+import { loggers } from "winston";
 
 const register = async (req: Request, res: Response): Promise<void> => {
     Logger.http(`POST create an user with first name: ${req.body.firstName}\n
@@ -82,7 +83,6 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
 const logout = async (req: Request, res: Response): Promise<void> => {
     const id = req.headers.authenticatedUserId;
-    Logger.info(req.headers.authenticatedUserId);
     try{
         const result = await users.findUserByColAttribute(id.toString(), "id");
         if (result.length === 0) {
@@ -92,10 +92,9 @@ const logout = async (req: Request, res: Response): Promise<void> => {
         } else {
             const user = result[0];
             await users.insertToken(undefined, user.id);
-            res.json({"firstName": user.first_name,
-                      "lastName": user.last_name,
-                      "email": user.email});
-            res.status(200).send("OK");
+            req.headers["X-Authorization"] = null;
+            res.statusMessage = 'OK'
+            res.status(200).send();
             return;
         }
     } catch (err) {
@@ -107,11 +106,42 @@ const logout = async (req: Request, res: Response): Promise<void> => {
 }
 
 const view = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    if (isNaN(parseInt(req.params.id, 10)) === true) {
+        res.status(400).send("Invalid Id");
         return;
+    }
+    const id = req.params.id;
+    try{
+        const result = await users.findUserByColAttribute(id, "id");
+        if (result.length === 0) {
+            res.statusMessage = "Not Found. No user with specified ID";
+            res.status(404).send();
+            return;
+        } else {
+            const user = result[0];
+            const authed = await users.findUserByColAttribute(req.get("X-Authorization"), "auth_token")
+            if (authed.length === 0) {
+                res.statusMessage = "OK";
+                res.status(200).json({"firstName": user.first_name,
+                "lastName": user.last_name
+                });
+                return;
+            }
+            const authUser = authed[0];
+            if (id === authUser.id.toString()) {
+                res.statusMessage = "OK";
+                res.status(200).json({"firstName": user.first_name,
+                "lastName": user.last_name,
+                "email": user.email
+                });
+                return;
+            }
+            res.statusMessage = "OK";
+            res.status(200).json({"firstName": user.first_name,
+            "lastName": user.last_name
+            });
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -121,11 +151,55 @@ const view = async (req: Request, res: Response): Promise<void> => {
 }
 
 const update = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    Logger.info("PATCH TBD");
+    if (isNaN(parseInt(req.params.id, 10)) === true) {
+        res.status(400).send("Invalid Id");
         return;
+    }
+    const id = req.params.id;
+    const authedId = req.headers.authenticatedUserId;
+    if (id !== authedId) {
+        res.status(403).send("Can not edit another user's information")
+        return;
+    }
+    const validation = await validate(
+        schemas.user_edit, req.body
+    );
+    if (validation !== true) {
+        res.statusMessage = `Bad Request: ${validation.toString()}`;
+        res.status(400).send();
+        return;
+    }
+    if (req.body.password === req.body.currentPassword) {
+        res.status(403).send("Identical current and new password");
+        return;
+    }
+    try{
+        const result = await users.findUserByColAttribute(id, "id");
+        if (result.length === 0) {
+            res.statusMessage = "Not Found. No user with specified ID";
+            res.status(404).send();
+            return;
+        }
+        const user = result[0];
+        if (await users.checkEmailExist(req.body.email) === true && req.body.email !== user.email) {
+            res.status(403).send("Email already in use");
+            return;
+        }
+        if (await encrypter.compare(req.body.currentPassword, user.password) === true) {
+            for (const param in req.body) {
+                if (param !== "currentPassword") {
+                    if (param === "password") {
+                        const hashed = await encrypter.hash(req.body.password);
+                        await users.updateUserByColAttribute(hashed, "password", user.id.toString());
+                    } else {
+                        await users.updateUserByColAttribute(req.body[param], param, user.id.toString());
+                    }
+                    res.status(200).send("OK");
+                    return;
+                }
+            }
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

@@ -46,4 +46,13 @@ const findUserByColAttribute = async (param: string, col: string): Promise<User[
     return result;
 }
 
-export { checkEmailExist, insert, findUserByColAttribute, insertToken };
+const updateUserByColAttribute = async (param: string, col: string, id: string): Promise<void> => {
+    Logger.info(`Updating user: ${id} with ${col}: ${param}`);
+    const conn = await getPool().getConnection();
+    const query = `UPDATE user SET ${col} = ? WHERE id = ?`;
+    const [ result ] = await conn.query(query, [ param, id ]);
+    await conn.release();
+    return result;
+}
+
+export { checkEmailExist, insert, findUserByColAttribute, insertToken, updateUserByColAttribute };
