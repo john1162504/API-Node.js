@@ -1,9 +1,26 @@
 import {Request, Response} from "express";
 import Logger from "../../config/logger";
+import * as users from "../models/user.model";
+import {readImage, removeImage, saveImage} from "../models/image.model";
+import {getImageExtension} from "../models/imageTools";
+
 
 const getImage = async (req: Request, res: Response): Promise<void> => {
+    Logger.http(`GET user's image`);
     try{
-        // Your code goes here
+        const result = await users.findUserByColAttribute(req.params.id, "id");
+        if (result.length === 0) {
+            res.status(404).send("Not Found. No user with specified ID, or user has no image");
+            return;
+        }
+        const user = result[0];
+        const imageName = user.image_filename;
+        if (imageName === null) {
+            res.status(404).send("Not Found. No user with specified ID, or user has no image");
+            return;
+        }
+        const [image, mimeType] = await readImage(imageName);
+        res.status(200).contentType(mimeType).send(image)
         res.statusMessage = "Not Implemented Yet!";
         res.status(501).send();
         return;
@@ -16,11 +33,39 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
 }
 
 const setImage = async (req: Request, res: Response): Promise<void> => {
-    try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+    if (isNaN(parseInt(req.params.id, 10)) === true) {
+        res.status(404).send("Not Found. No such user with ID given");
         return;
+    }
+    const id = req.params.id;
+    const authId =req.headers.authenticatedUserId;
+    if (id !== authId) {
+        res.status(403).send("Can not change another user's profile photo");
+        return;
+    }
+    const mimeType = req.headers["content-type"];
+    const img = req.body;
+    const fileExt = getImageExtension(mimeType);
+    if (fileExt === null) {
+        res.statusMessage = 'Bad Request: Invalid image supplied (possibly incorrect file type';
+        res.status(400).send();
+        return;
+    }
+    try{
+        const result = await users.findUserByColAttribute(id, "id");
+        const user = result[0];
+        if (user.image_filename === null) {
+            const imgName = await saveImage(img, fileExt);
+            users.updateUserByColAttribute(imgName, "image_filename", id);
+            res.status(201).send("Created. New image created");
+            return;
+        } else {
+            await readImage(user.image_filename);
+            const imgName = await saveImage(img, fileExt);
+            users.updateUserByColAttribute(imgName, "image_filename", id);
+            res.status(201).send("OK. Image updated");
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

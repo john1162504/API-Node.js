@@ -19,7 +19,7 @@ module.exports = (app: Express) => {
         .patch(loginRequired, user.update);
 
     app.route(rootUrl+'/users/:id/image')
-        .get(loginRequired, userImages.getImage)
-        .put(loginRequired,userImages.setImage)
+        .get(userImages.getImage)
+        .put(loginRequired, userImages.setImage)
         .delete(loginRequired, userImages.deleteImage)
 }

@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import * as schemas from '../resources/schemas.json';
 import {validate} from '../validator';
-import * as users from '../models/user.models'
+import * as users from '../models/user.model'
 import * as encrypter from '../services/passwords'
 import {uid} from 'rand-token';
 import { loggers } from "winston";

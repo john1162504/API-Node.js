@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express";
-import {findUserByColAttribute} from '../models/user.models';
+import {findUserByColAttribute} from '../models/user.model';
 
 const loginRequired = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const token = req.get("X-Authorization");
