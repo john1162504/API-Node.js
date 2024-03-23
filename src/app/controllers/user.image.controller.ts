@@ -33,26 +33,27 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
 }
 
 const setImage = async (req: Request, res: Response): Promise<void> => {
-    if (isNaN(parseInt(req.params.id, 10)) === true) {
-        res.status(404).send("Not Found. No such user with ID given");
-        return;
-    }
-    const id = req.params.id;
-    const authId =req.headers.authenticatedUserId;
-    if (id !== authId) {
-        res.status(403).send("Can not change another user's profile photo");
-        return;
-    }
-    const mimeType = req.headers["content-type"];
-    const img = req.body;
-    const fileExt = getImageExtension(mimeType);
-    if (fileExt === null) {
-        res.statusMessage = 'Bad Request: Invalid image supplied (possibly incorrect file type';
-        res.status(400).send();
-        return;
-    }
+
     try{
+        const id = req.params.id;
+        const authId =req.headers.authenticatedUserId;
         const result = await users.findUserByColAttribute(id, "id");
+        if (isNaN(parseInt(req.params.id, 10)) === true || result.length === 0) {
+            res.status(404).send("Not Found. No such user with ID given");
+            return;
+        }
+        if (id !== authId) {
+            res.status(403).send("Can not change another user's profile photo");
+            return;
+        }
+        const mimeType = req.headers["content-type"];
+        const img = req.body;
+        const fileExt = getImageExtension(mimeType);
+        if (fileExt === null) {
+            res.statusMessage = 'Bad Request: Invalid image supplied (possibly incorrect file type';
+            res.status(400).send();
+            return;
+        }
         const user = result[0];
         if (user.image_filename === null) {
             const imgName = await saveImage(img, fileExt);
@@ -76,9 +77,26 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
 
 const deleteImage = async (req: Request, res: Response): Promise<void> => {
     try{
-        // Your code goes here
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
+        const id = req.params.id;
+        const authId =req.headers.authenticatedUserId;
+        const result = await users.findUserByColAttribute(id, "id");
+        if (isNaN(parseInt(req.params.id, 10)) === true || result.length === 0) {
+            res.status(404).send("Not Found. No such user with ID given");
+            return;
+        }
+        if (id !== authId) {
+            res.status(403).send("Can not delete another user's profile photo");
+            return;
+        }
+        const user = result[0];
+        const imgName = user.image_filename
+        if (imgName === null) {
+            res.status(404).send("Not Found. No image with given user");
+            return;
+        }
+        await users.updateUserByColAttribute(null, "image_filename", user.id.toString());
+        await removeImage(imgName);
+        res.status(200).send("OK");
         return;
     } catch (err) {
         Logger.error(err);
