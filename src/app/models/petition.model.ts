@@ -14,13 +14,13 @@ const viewAll = async (searchQuery: petitionSearchQuery): Promise<petitionReturn
         COALESCE(S.supporters_count, 0) AS numberOfSupporters,
         P.creation_date AS creationDate,
         min_cost.supportTierCost AS supportingCost
-    FROM
-        petition P
-    INNER JOIN
-        user U ON P.owner_id = U.id
-    LEFT JOIN
-        (SELECT petition_id, COUNT(*) AS supporters_count FROM supporter GROUP BY petition_id) S ON P.id = S.petition_id
-    `;
+        FROM
+            petition P
+        INNER JOIN
+            user U ON P.owner_id = U.id
+        LEFT JOIN
+            (SELECT petition_id, COUNT(*) AS supporters_count FROM supporter GROUP BY petition_id) S ON P.id = S.petition_id
+        `;
     let countQuery =
     `SELECT
         COUNT(P.id)

@@ -5,7 +5,6 @@ import * as schemas from '../resources/schemas.json';
 import * as Petition from '../models/petition.model';
 import { hasUniqueTitles } from "./petition.support_tier.controller";
 import { insertSupportTier } from "../models/supportTier.model";
-import { stat } from "fs";
 
 const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{

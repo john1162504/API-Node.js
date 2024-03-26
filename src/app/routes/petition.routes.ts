@@ -22,16 +22,16 @@ module.exports = (app: Express) => {
 
     app.route(rootUrl+'/petitions/:id/image')
         .get(petitionImage.getImage)
-        .put(petitionImage.setImage);
+        .put(loginRequired, petitionImage.setImage);
 
     app.route(rootUrl+'/petitions/:id/supportTiers')
-        .put(supportTiers.addSupportTier);
+        .put(loginRequired, supportTiers.addSupportTier);
 
     app.route(rootUrl+'/petitions/:id/supportTiers/:tierId')
-        .patch(supportTiers.editSupportTier)
-        .delete(supportTiers.deleteSupportTier);
+        .patch(loginRequired, supportTiers.editSupportTier)
+        .delete(loginRequired, supportTiers.deleteSupportTier);
 
     app.route(rootUrl + '/petitions/:id/supporters')
         .get(supporter.getAllSupportersForPetition)
-        .post(supporter.addSupporter);
+        .post(loginRequired, supporter.addSupporter);
 }
