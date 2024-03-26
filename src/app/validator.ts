@@ -1,8 +1,12 @@
 import Ajv from 'ajv';
 const ajv = new Ajv({removeAdditional: 'all', strict: false});
 
-ajv.addFormat("email",
-                /^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$/);
+ajv.addFormat("email", /^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$/);
+ajv.addFormat('password', /^.{6,}$/);
+ajv.addFormat('binary', /.*/);
+ajv.addFormat('integer', /^\d+$/)
+ajv.addFormat('datetime', /^\d\d\d\d-\d\d?-\d\d? \d\d?:\d\d?:\d\d?$/)
+
 
 const validate = async (schema: object, data: any) => {
     try {

@@ -219,20 +219,17 @@
       "title": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 128,
-        "nullable": false
+        "maxLength": 128
       },
       "description": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 1024,
-        "nullable": false
+        "maxLength": 1024
       },
       "categoryId": {
         "type": "number",
         "format": "integer",
-        "minimum": 0,
-        "nullable": false
+        "minimum": 0
       }
     },
     "additionalProperties": false

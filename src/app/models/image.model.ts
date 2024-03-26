@@ -1,5 +1,5 @@
 import { fs } from "mz";
-import {getImageMimetype} from "./imageTools";
+import {getImageMimetype} from "../services/imageTools";
 import Logger from '../../config/logger';
 import { generate } from "rand-token";
 

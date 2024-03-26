@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import Logger from "../../config/logger";
 import * as users from "../models/user.model";
 import {readImage, removeImage, saveImage} from "../models/image.model";
-import {getImageExtension} from "../models/imageTools";
+import {getImageExtension} from "../services/imageTools";
 
 
 const getImage = async (req: Request, res: Response): Promise<void> => {
