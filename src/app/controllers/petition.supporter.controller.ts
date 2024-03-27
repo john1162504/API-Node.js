@@ -5,7 +5,6 @@ import * as Supporter from "../models/supporter.model"
 import * as ST from "../models/supportTier.model";
 import * as schemas from '../resources/schemas.json';
 import { validate } from "../validator";
-import { timeStamp } from "console";
 
 
 const getAllSupportersForPetition = async (req: Request, res: Response): Promise<void> => {

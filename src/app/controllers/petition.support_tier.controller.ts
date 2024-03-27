@@ -32,7 +32,7 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
             res.status(403).send("Only the owner of a petition may modify it");
             return;
         }
-        
+
         const validation = await validate(schemas.support_tier_post, req.body);
         if (validation !== true) {
             res.status(400).send("Bad Request. Invalid information");
@@ -83,7 +83,7 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
             res.status(404).send("Not Found. No petition with id");
             return;
         }
-        
+
         const tierId = req.params.tierId;
         const validateTiers = await ST.getValidSupportTierIds(petitionId);
         if (!validateTiers.includes(tierId)) {
@@ -94,7 +94,7 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         const petition = await Petition.getOne(petitionId);
         const tier = await ST.getSupportTierById(tierId);
         const ownerId = petition.ownerId;
-        
+
 
         if (ownerId === null) {
             Logger.warn("Petition does not have an owner");
@@ -106,15 +106,15 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
             res.status(403).send("Only the owner of a petition may modify it");
             return;
         }
-        
+
 
         const title = req.body.hasOwnProperty("tier") ? req.body.title : tier.title;
         const description = req.body.hasOwnProperty("description") ? req.body.description : tier.description;
         const cost = req.body.hasOwnProperty("cost") ? req.body.cost : tier.cost;
         const Tier = {
-            title: title,
-            description: description,
-            cost: cost,
+            title,
+            description,
+            cost,
             id: tierId
         }
 
@@ -165,7 +165,7 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
             res.status(404).send("Not Found. No petition with id");
             return;
         }
-        
+
         const tierId = req.params.tierId;
         const validateTiers = await ST.getValidSupportTierIds(petitionId);
         if (!validateTiers.includes(tierId)) {
@@ -176,7 +176,7 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
         const petition = await Petition.getOne(petitionId);
         const tier = await ST.getSupportTierById(tierId);
         const ownerId = petition.ownerId;
-        
+
 
         if (ownerId === null) {
             Logger.warn("Petition does not have an owner");
@@ -188,7 +188,7 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
             res.status(403).send("Only the owner of a petition may delete it");
             return;
         }
-        
+
         const numOfSupporter = await ST.getNumOfSupporter(tierId);
         if (numOfSupporter > 0) {
             res.status(403).send("Can not delete a supporter tier if a supporter already exists for it");

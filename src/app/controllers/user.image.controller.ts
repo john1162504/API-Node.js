@@ -27,6 +27,9 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
         if(image === null || mimeType === null) {
             res.status(500).send("Internal Server Error");
             return;
+        } else {
+            res.status(200).contentType(mimeType).send(image)
+            return;
         }
     } catch (err) {
         Logger.error(err);

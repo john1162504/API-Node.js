@@ -21,7 +21,7 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
         if (imageName === null) {
             res.status(404).send("Petition has no image");
             return;
-        }        
+        }
         const [image, mimeType] = await readImage(imageName);
         if(image === null || mimeType === null) {
             res.status(500).send("Internal Server Error");
@@ -67,8 +67,8 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
 
         const imageName = await Petition.getPetitionImageName(id);
         if (imageName === null) {
-            const imageName = await saveImage(img, fileExt);
-            const result = await Petition.updatePetitionImage(imageName, id);
+            const newImageName = await saveImage(img, fileExt);
+            const result = await Petition.updatePetitionImage(newImageName, id);
             if (result) {
                 res.status(201).send("OK. Image added");
                 return;
@@ -77,8 +77,8 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
                 return;
             }
         } else {
-            const imageName = await saveImage(img, fileExt);
-            const result = await Petition.updatePetitionImage(imageName, id);
+            const newImageName = await saveImage(img, fileExt);
+            const result = await Petition.updatePetitionImage(newImageName, id);
             if (result) {
                 res.status(201).send("OK. Image updated");
                 return;

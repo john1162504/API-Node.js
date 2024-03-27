@@ -72,7 +72,7 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
     }
     try{
         const id = req.params.id;
-        
+
         const validPetitions = await Petition.getPetitionIds();
         if (!validPetitions.includes(id)) {
             res.status(404).send("Not Found. No petition with id");
@@ -180,11 +180,6 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             res.status(403).send("Only the owner of a petition may change it");
             return;
         }
-        const validation = await validate(schemas.petition_patch, req.body);
-        if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
-            return;
-        }
 
         if (req.body.hasOwnProperty("categoryId")) {
             const validCategories = await Petition.getCategoryIds();
@@ -212,6 +207,17 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             description = req.body.description;
         } else {
             description = petition.description;
+        }
+
+        const editBody = {
+            title,
+            description,
+            categoryId
+        }
+        const validation = await validate(schemas.petition_patch, editBody);
+        if (validation !== true) {
+            res.status(400).send("Bad Request. Invalid information");
+            return;
         }
 
         const result = await Petition.editPetition(petitionId, title, description, categoryId);

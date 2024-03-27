@@ -4,7 +4,7 @@ import { ResultSetHeader } from "mysql2";
 
 const getSupportTierByPetitionId = async (petitionId: string): Promise<ResultSetHeader> => {
     const query = `
-    SELECT 
+    SELECT
         S.id AS supportId,
         support_tier_id as supportTierId,
         message,
@@ -25,14 +25,14 @@ const getSupportTierByPetitionId = async (petitionId: string): Promise<ResultSet
     `;
     const [result] = await getPool().query(query, petitionId);
     return result;
-} 
+}
 
 const getSupportingTiers = async (userId: string): Promise<string[]> => {
     const query = `SELECT support_tier_id FROM supporter where user_id = ?`;
     const rows = await getPool().query(query, userId);
     const data = rows[0];
     const ids: string[] = data.map((obj: { id: string; }) => String(obj.id));
-    return ids; 
+    return ids;
 }
 
 const addSupporter = async (petitionId: string, tierId: string, userId: string, message: string, timeStamp: string): Promise<boolean> => {
