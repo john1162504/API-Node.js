@@ -85,7 +85,7 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         }
         
         const tierId = req.params.tierId;
-        const validateTiers = await ST.getValidateIds(petitionId);
+        const validateTiers = await ST.getValidSupportTierIds(petitionId);
         if (!validateTiers.includes(tierId)) {
             res.status(404).send("Not Found. No support tier with id");
             return;
@@ -167,7 +167,7 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
         }
         
         const tierId = req.params.tierId;
-        const validateTiers = await ST.getValidateIds(petitionId);
+        const validateTiers = await ST.getValidSupportTierIds(petitionId);
         if (!validateTiers.includes(tierId)) {
             res.status(404).send("Not Found. No support tier with id");
             return;

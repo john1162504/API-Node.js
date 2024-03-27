@@ -28,7 +28,7 @@ const getNumOfSupporter = async (addSupportTierId: string): Promise<number> => {
     return result.numOfSupporter;
 }
 
-const getValidateIds = async (petitionId: string): Promise<string[]> => {
+const getValidSupportTierIds = async (petitionId: string): Promise<string[]> => {
     const query = `SELECT id FROM support_tier WHERE petition_id = ${petitionId}`;
     const rows = await getPool().query(query);
     const data = rows[0];
@@ -55,4 +55,4 @@ const deleteSupportTier = async (supportTierId: string): Promise<boolean> => {
     return result && result.affectedRows === 1;
 }   
 
-export {getExistingTitles, insertSupportTier, addSupportTier, getNumOfSupporter, editSupportTier, getValidateIds, getSupportTierById, deleteSupportTier};
+export {getExistingTitles, insertSupportTier, addSupportTier, getNumOfSupporter, editSupportTier, getValidSupportTierIds, getSupportTierById, deleteSupportTier};
