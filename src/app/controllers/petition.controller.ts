@@ -70,18 +70,21 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
             return;
         }
     }
-    const id = req.params.id;
-    const validation = await validate(schemas.petition_search, req.query);
-    const validPetitions = await Petition.getPetitionIds();
-    if (validation !== true) {
-        res.status(400).send("Bad Request. Invalid information");
-        return;
-    }
-    if (!validPetitions.includes(id)) {
-        res.status(404).send("Not Found. No petition with id");
-        return;
-    }
     try{
+        const id = req.params.id;
+        
+        const validPetitions = await Petition.getPetitionIds();
+        if (!validPetitions.includes(id)) {
+            res.status(404).send("Not Found. No petition with id");
+            return;
+        }
+
+        const validation = await validate(schemas.petition_search, req.query);
+        if (validation !== true) {
+            res.status(400).send("Bad Request. Invalid information");
+            return;
+        }
+
         const petition = await Petition.getOne(id);
         res.status(200).send(petition);
         return;

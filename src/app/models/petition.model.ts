@@ -220,4 +220,16 @@ const getCategories = async(): Promise<category[]> => {
     return categories;
 }
 
-export {viewAll, getOne, getCategoryIds, getPetitionIds, getPetitionTitles, addPetition, getPetitionOwnerId, editPetition, deletePetition, getCategories}
+const getPetitionImageName = async (petitionId: string): Promise<string> => {
+    const query = `SELECT image_filename FROM petition WHERE id = ?`;
+    const [rows] = await getPool().query(query, petitionId);
+    return rows[0];
+}
+
+const updatePetitionImage = async (imageName: string,petitionId: string): Promise<boolean> => {
+    const query = `UPDATE petition SET image_filename = ? WHERE id = ?`;
+    const [result] = await getPool().query(query, [imageName, petitionId]);
+    return result && result.affectedRows === 1;
+}
+
+export {viewAll, getOne, getCategoryIds, getPetitionIds, getPetitionTitles, addPetition, getPetitionOwnerId, editPetition, deletePetition, getCategories, getPetitionImageName, updatePetitionImage}

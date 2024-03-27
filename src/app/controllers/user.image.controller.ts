@@ -7,6 +7,10 @@ import {getImageExtension} from "../services/imageTools";
 
 const getImage = async (req: Request, res: Response): Promise<void> => {
     Logger.http(`GET user's image`);
+    if (isNaN(parseInt(req.params.id, 10)) === true) {
+        res.status(400).send("Bad Request. Invalid information");
+        return;
+    }
     try{
         const result = await users.findUserByColAttribute(req.params.id, "id");
         if (result.length === 0) {
@@ -20,10 +24,10 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const [image, mimeType] = await readImage(imageName);
-        res.status(200).contentType(mimeType).send(image)
-        res.statusMessage = "Not Implemented Yet!";
-        res.status(501).send();
-        return;
+        if(image === null || mimeType === null) {
+            res.status(500).send("Internal Server Error");
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -33,12 +37,15 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
 }
 
 const setImage = async (req: Request, res: Response): Promise<void> => {
-
+    if (isNaN(parseInt(req.params.id, 10)) === true) {
+        res.status(400).send("Bad Request. Invalid information");
+        return;
+    }
     try{
         const id = req.params.id;
         const authId =req.headers.authenticatedUserId;
         const result = await users.findUserByColAttribute(id, "id");
-        if (isNaN(parseInt(req.params.id, 10)) === true || result.length === 0) {
+        if (result.length === 0) {
             res.status(404).send("Not Found. No such user with ID given");
             return;
         }
@@ -61,7 +68,6 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             res.status(201).send("Created. New image created");
             return;
         } else {
-            await readImage(user.image_filename);
             const imgName = await saveImage(img, fileExt);
             users.updateUserByColAttribute(imgName, "image_filename", id);
             res.status(201).send("OK. Image updated");
