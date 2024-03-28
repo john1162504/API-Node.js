@@ -10,7 +10,8 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
     try{
         const validation = await validate(schemas.petition_search, req.query);
         if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
         if (req.query.hasOwnProperty("startIndex")) {
@@ -36,7 +37,8 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
                 req.query.categoryIds = [parseInt(req.query.categoryIds as string, 10)] as any;
             }
             if (!(req.query.categoryIds as any as string[]).every(id => validCategories.includes(id))) {
-                res.status(400).send("Bad Request. Invalid information");
+                res.statusMessage = "Bad Request. Invalid information";
+                res.status(400).send();
                 return;
             }
         }
@@ -52,7 +54,8 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
         };
         search = {...search, ...req.query};
         const petitions = await Petition.viewAll(search);
-        res.status(200).send(petitions);
+        res.statusMessage = "OK";
+        res.status(200).json(petitions);
         return;
     } catch (err) {
         Logger.error(err);
@@ -66,7 +69,8 @@ const getAllPetitions = async (req: Request, res: Response): Promise<void> => {
 const getPetition = async (req: Request, res: Response): Promise<void> => {
     if (req.params.id) {
         if (isNaN(parseInt(req.params.id, 10)) === true) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
     }
@@ -75,18 +79,21 @@ const getPetition = async (req: Request, res: Response): Promise<void> => {
 
         const validPetitions = await Petition.getPetitionIds();
         if (!validPetitions.includes(id)) {
-            res.status(404).send("Not Found. No petition with id");
+            res.statusMessage = "Not Found. No petition with id";
+            res.status(404).send();
             return;
         }
 
         const validation = await validate(schemas.petition_search, req.query);
         if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
 
         const petition = await Petition.getOne(id);
-        res.status(200).send(petition);
+        res.statusMessage = "OK";
+        res.status(200).json(petition);
         return;
     } catch (err) {
         Logger.error(err);
@@ -100,7 +107,8 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
     try{
         const validation = await validate(schemas.petition_post, req.body);
         if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
 
@@ -112,34 +120,38 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
 
         const existingPetitionTitles = await Petition.getPetitionTitles();
         if (existingPetitionTitles.includes(req.body.title)) {
-            res.status(403).send("Petition title already exists");
+            res.statusMessage = "Petition title already exists";
+            res.status(403).send();
             return;
         }
 
         const supportTiers: supportTier[] = req.body.supportTiers;
         if (supportTiers.length > 3 || !hasUniqueTitles(supportTiers)) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
 
         const title = req.body.title;
         const categoryId = req.body.categoryId;
         const ownerId = req.headers.authenticatedUserId;
-        const desciption = req.body.description;
+        const description = req.body.description;
         const d = new Date();
         const date = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
 
-        const result = await Petition.addPetition(title, desciption, date, ownerId.toString(), categoryId);
+        const result = await Petition.addPetition(title, description, date, ownerId.toString(), categoryId);
         const petitionId = result.insertId;
         if (result) {
             for (const s of supportTiers) {
                 const supportTierResult = await insertSupportTier(petitionId.toString(), s.title, s.description, s.cost);
             }
-            res.status(201).send({"petitionId": petitionId});
+            res.statusMessage = "Created";
+            res.status(201).json({"petitionId": petitionId});
             return;
         } else {
             Logger.warn("Petition fail to add to database");
-            res.status(500).send("Internal Server Error");
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send();
         }
     } catch (err) {
         Logger.error(err);
@@ -151,7 +163,8 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
 
 const editPetition = async (req: Request, res: Response): Promise<void> => {
     if (isNaN(parseInt(req.params.id, 10)) === true) {
-        res.status(400).send("Bad Request. Invalid information");
+        res.statusMessage = "Bad Request. Invalid information";
+        res.status(400).send();
         return;
     }
     try{
@@ -159,7 +172,8 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         const petitionId = req.params.id;
 
         if (!validPetitions.includes(petitionId)) {
-            res.status(404).send("Not Found. No petition with id");
+            res.statusMessage = "Not Found. No petition with id";
+            res.status(404).send();
             return;
         }
 
@@ -172,12 +186,14 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
 
         if (ownerId === null) {
             Logger.warn("Petition does not have an owner");
-            res.status(500).send("Internal Server Error");
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send();
             return;
         }
         const authId = req.headers.authenticatedUserId;
         if (authId !== ownerId.toString()) {
-            res.status(403).send("Only the owner of a petition may change it");
+            res.statusMessage = "Only the owner of a petition may change it";
+            res.status(403).send();
             return;
         }
 
@@ -185,7 +201,8 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             categoryId = req.body.categoryId;
             const validCategories = await Petition.getCategoryIds();
             if (!validCategories.includes(categoryId)) {
-                res.status(400).send("Bad Request. Invalid information");
+                res.statusMessage = "Bad Request. Invalid information";
+                res.status(400).send();
                 return;
             }
         } else {
@@ -196,7 +213,8 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
             const existingPetitionTitles = await Petition.getPetitionTitles();
             title = req.body.title;
             if (existingPetitionTitles.includes(title)) {
-                res.status(403).send("Petition title already exists");
+                res.statusMessage = "Petition title already exists";
+                res.status(403).send();
                 return;
             }
         } else {
@@ -216,17 +234,20 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         }
         const validation = await validate(schemas.petition_patch, editBody);
         if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
+            res.statusMessage = "Bad Request. Invalid information";
+            res.status(400).send();
             return;
         }
 
         const result = await Petition.editPetition(petitionId, title, description, categoryId);
         if (result) {
-            res.status(200).send("OK");
+            res.statusMessage = "OK";
+            res.status(200).send();
             return;
         } else {
             Logger.warn("Petition not updated");
-            res.status(500).send("Internal Server Error");
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send();
             return;
         }
     } catch (err) {
@@ -239,7 +260,8 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
 
 const deletePetition = async (req: Request, res: Response): Promise<void> => {
     if (isNaN(parseInt(req.params.id, 10)) === true) {
-        res.status(400).send("Bad Request. Invalid information");
+        res.statusMessage = "Bad Request. Invalid information";
+        res.status(400).send();
         return;
     }
     try{
@@ -247,7 +269,8 @@ const deletePetition = async (req: Request, res: Response): Promise<void> => {
         const petitionId = req.params.id;
 
         if (!validPetitions.includes(petitionId)) {
-            res.status(404).send("Not Found. No petition with id");
+            res.statusMessage = "Not Found. No petition with id";
+            res.status(404).send();
             return;
         }
 
@@ -256,28 +279,33 @@ const deletePetition = async (req: Request, res: Response): Promise<void> => {
 
         if (ownerId === null) {
             Logger.warn("Petition does not have an owner");
-            res.status(500).send("Internal Server Error");
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send();
             return;
         }
 
         const authId = req.headers.authenticatedUserId;
         if (authId !== ownerId.toString()) {
-            res.status(403).send("Only the owner of a petition may change it");
+            res.statusMessage = "Only the owner of a petition may change it";
+            res.status(403).send();
             return;
         }
 
         if (petition.numberOfSupporters > 0) {
-            res.status(403).send("Can not delete a petition with one or more suppoters");
+            res.statusMessage = "Can not delete a petition with one or more suppoters";
+            res.status(403).send();
             return;
         }
 
         const result = await Petition.deletePetition(petitionId);
         if (result) {
-            res.status(200).send("OK");
+            res.statusMessage = "OK";
+            res.status(200).send();
             return;
         } else {
             Logger.warn("Petition not deleted");
-            res.status(500).send("Internal Server Error");
+            res.statusMessage = "Internal Server Error";
+            res.status(500).send();
             return;
         }
     } catch (err) {
@@ -292,10 +320,12 @@ const getCategories = async(req: Request, res: Response): Promise<void> => {
     try{
         const categories = await Petition.getCategories();
         if (categories) {
-            res.status(200).send(categories);
+            res.statusMessage = "OK";
+            res.status(200).json(categories);
             return;
         } else {
-            res.status(500).send("Could not retrieve categories");
+            res.statusMessage = "Could not retrieve categories";
+            res.status(500).send();
             return;
         }
     } catch (err) {
