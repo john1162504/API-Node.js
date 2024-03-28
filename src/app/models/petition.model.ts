@@ -131,7 +131,7 @@ const getOne = async (petitionId: string): Promise<petition> => {
     WHERE
         P.id = ?`;
     const [rows] = await getPool().query(petitionQuery, petitionId);
-    const petition = rows[0];
+    const petition: petition = rows[0];
 
     const moneyRaisedQuery =
     `SELECT
@@ -141,7 +141,7 @@ const getOne = async (petitionId: string): Promise<petition> => {
     INNER JOIN
         support_tier ST
     ON
-        S.petition_id = ST.petition_id
+        S.support_tier_id = ST.id
     WHERE
         ST.petition_id = ?
 `;
@@ -160,10 +160,10 @@ const getOne = async (petitionId: string): Promise<petition> => {
         petition P ON ST.petition_id = P.id
     WHERE
         ST.petition_id = ?
-        `
+    `
     const [tiersRows] = await getPool().query(supportTierQuery, petitionId);
     const supportTier = tiersRows;
-    petition.moneyRaised = moneyRaised;
+    petition.moneyRaised = parseInt(moneyRaised, 10);
     petition.supportTiers = supportTier;
     return petition;
 }
