@@ -111,7 +111,7 @@ const viewAll = async (searchQuery: petitionSearchQuery): Promise<petitionReturn
     return {petitions,count} as petitionReturn;
 }
 
-const getOne = async (id: string): Promise<petition> => {
+const getOne = async (petitionId: string): Promise<petition> => {
     const petitionQuery =
     `SELECT
         P.id AS petitionId,
@@ -120,29 +120,33 @@ const getOne = async (id: string): Promise<petition> => {
         U.id AS ownerId,
         U.first_name AS ownerFirstName,
         U.last_name AS ownerLastName,
+        COALESCE(S.supporters_count, 0) AS numberOfSupporters,
         P.creation_date as creationDate,
         P.description as description
     FROM
         petition P
     INNER JOIN
         user U ON P.owner_id = U.id
+    LEFT JOIN
+        (SELECT petition_id, COUNT(*) AS supporters_count FROM supporter GROUP BY petition_id) S ON P.id = S.petition_id
     WHERE
-    P.id = ${id}`;
-    const [rows] = await getPool().query(petitionQuery);
+        P.id = ?`;
+    const [rows] = await getPool().query(petitionQuery, petitionId);
     const petition = rows[0];
 
     const moneyRasiedQuery =
     `SELECT
-	    SUM(ST.cost) as moneyRasied
+        COALESCE(SUM(cost), 0) AS moneyRasied
     FROM
         supporter S
-    JOIN
-        support_tier ST ON S.support_tier_id = ST.id
-    JOIN
-        petition P ON ST.petition_id = P.id
+    INNER JOIN
+        support_tier ST
+    ON
+        S.petition_id = ST.petition_id
     WHERE
-        S.petition_id = ${id}`;
-    const [moneyRows] = await getPool().query(moneyRasiedQuery);
+        ST.petition_id = ?
+`;
+    const [moneyRows] = await getPool().query(moneyRasiedQuery, petitionId);
     const moneyRasied = moneyRows[0].moneyRasied;
 
     const supportTierQuery =
@@ -156,12 +160,12 @@ const getOne = async (id: string): Promise<petition> => {
     JOIN
         petition P ON ST.petition_id = P.id
     WHERE
-        ST.petition_id = ${id}
+        ST.petition_id = ?
         `
-    const [tiersRows] = await getPool().query(supportTierQuery);
+    const [tiersRows] = await getPool().query(supportTierQuery, petitionId);
     const supportTier = tiersRows;
     petition.moneyRasied = moneyRasied;
-    petition.support_tier = supportTier;
+    petition.supportTiers = supportTier;
     return petition;
 }
 
@@ -220,6 +224,12 @@ const getCategories = async(): Promise<category[]> => {
     return categories;
 }
 
+const getNumOfSupporter = async(petitionId: string): Promise<number> => {
+    const query = ` SELECT COUNT(petition_id) as count FROM supporter WHERE petition_id = ?`;
+    const rows = await getPool().query(query);
+    return rows.count;
+}
+
 const getPetitionImageName = async (petitionId: string): Promise<string> => {
     const query = `SELECT image_filename FROM petition WHERE id = ?`;
     const [rows] = await getPool().query(query, petitionId);
@@ -232,4 +242,4 @@ const updatePetitionImage = async (imageName: string,petitionId: string): Promis
     return result && result.affectedRows === 1;
 }
 
-export {viewAll, getOne, getCategoryIds, getPetitionIds, getPetitionTitles, addPetition, getPetitionOwnerId, editPetition, deletePetition, getCategories, getPetitionImageName, updatePetitionImage}
+export {viewAll, getOne, getCategoryIds, getPetitionIds, getPetitionTitles, addPetition, getPetitionOwnerId, editPetition, deletePetition, getCategories, getPetitionImageName, updatePetitionImage, getNumOfSupporter}

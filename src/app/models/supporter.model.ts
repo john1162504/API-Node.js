@@ -2,7 +2,7 @@ import {getPool} from "../../config/db";
 import Logger from '../../config/logger';
 import { ResultSetHeader } from "mysql2";
 
-const getSupportTierByPetitionId = async (petitionId: string): Promise<ResultSetHeader> => {
+const getSupportTierByPetitionId = async (petitionId: string): Promise<supportTier[]> => {
     const query = `
     SELECT
         S.id AS supportId,
@@ -21,7 +21,7 @@ const getSupportTierByPetitionId = async (petitionId: string): Promise<ResultSet
     WHERE
         ST.petition_id = ?
     ORDER BY
-        timestamp DSC
+        timestamp DESC
     `;
     const [result] = await getPool().query(query, petitionId);
     return result;

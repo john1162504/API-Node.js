@@ -2,7 +2,7 @@ import {getPool} from "../../config/db";
 import Logger from '../../config/logger';
 import { ResultSetHeader } from "mysql2";
 
-const insertSupportTier = async (petitionId: number, title: string, description: string, cost: number): Promise<ResultSetHeader> => {
+const insertSupportTier = async (petitionId: string, title: string, description: string, cost: number): Promise<ResultSetHeader> => {
     const query = `INSERT INTO support_tier (petition_id, title, description, cost) VALUES(?,?,?,?)`;
     const [result] = await getPool().query(query, [petitionId, title, description, cost]);
     return result;
@@ -16,16 +16,10 @@ const getExistingTitles = async (petitionId: string): Promise<string[]> => {
     return titles;
 }
 
-const addSupportTier = async (title: string, description: string, cost: number, petitionId: string): Promise<boolean> => {
-    const query = `INSERT INTO support_tier (petition_id, title, description, cost) VALUES (?,?,?,?)`;
-    const result = await getPool().query(query, [petitionId, title, description, cost]);
-    return result && result.affectedRows === 1;
-}
-
-const getNumOfSupporter = async (addSupportTierId: string): Promise<number> => {
-    const query = `SELECT COUNT(*) as numOfSupporter FROM supporter WHERE support_tier_id = ${addSupportTierId}`;
+const getNumOfSupporter = async (supportTierId: string): Promise<number> => {
+    const query = `SELECT COUNT(*) as numOfSupporter FROM supporter WHERE support_tier_id = ${supportTierId}`;
     const [result] = await getPool().query(query);
-    return result.numOfSupporter;
+    return result[0].numOfSupporter;
 }
 
 const getValidSupportTierIds = async (petitionId: string): Promise<string[]> => {
@@ -44,7 +38,7 @@ const editSupportTier = async (title: string, description: string, cost: number,
 
 const getSupportTierById = async (supportTierId: string): Promise<supportTier> => {
     const query = `SELECT title, description, cost  FROM support_tier WHERE id = ?`;
-    const rows = await getPool().query(query, supportTierId);
+    const [rows] = await getPool().query(query, supportTierId);
     return rows[0];
 
 }
@@ -55,4 +49,4 @@ const deleteSupportTier = async (supportTierId: string): Promise<boolean> => {
     return result && result.affectedRows === 1;
 }
 
-export {getExistingTitles, insertSupportTier, addSupportTier, getNumOfSupporter, editSupportTier, getValidSupportTierIds, getSupportTierById, deleteSupportTier};
+export {getExistingTitles, insertSupportTier, getNumOfSupporter, editSupportTier, getValidSupportTierIds, getSupportTierById, deleteSupportTier};

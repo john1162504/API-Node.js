@@ -33,12 +33,6 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const validation = await validate(schemas.support_tier_post, req.body);
-        if (validation !== true) {
-            res.status(400).send("Bad Request. Invalid information");
-            return;
-        }
-
         const existingTitles = await ST.getExistingTitles(petitionId);
         if (existingTitles.length >= 3) {
             res.status(403).send("Can't add a support tier if 3 already exist");
@@ -50,10 +44,23 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const title = req.body.tier;
+        const title = req.body.title;
         const description = req.body.description;
         const cost = req.body.cost;
-        const result = ST.addSupportTier(petitionId, title, description, cost);
+
+        const Tier = {
+            title,
+            description,
+            cost
+        }
+
+        const validation = await validate(schemas.support_tier_post, Tier);
+        if (validation !== true) {
+            res.status(400).send("Bad Request. Invalid information");
+            return;
+        }
+
+        const result = await ST.insertSupportTier(petitionId, title, description, cost);
 
         if (result) {
             res.status(201).send("OK");
@@ -72,7 +79,7 @@ const addSupportTier = async (req: Request, res: Response): Promise<void> => {
 }
 
 const editSupportTier = async (req: Request, res: Response): Promise<void> => {
-    if (isNaN(parseInt(req.params.id, 10)) !== true || isNaN(parseInt(req.params.tierId, 10))  !== true) {
+    if (isNaN(parseInt(req.params.id, 10))|| isNaN(parseInt(req.params.tierId, 10))) {
         res.status(400).send("Bad Request. Invalid information");
         return;
     }
@@ -95,7 +102,6 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
         const tier = await ST.getSupportTierById(tierId);
         const ownerId = petition.ownerId;
 
-
         if (ownerId === null) {
             Logger.warn("Petition does not have an owner");
             res.status(500).send("Internal Server Error");
@@ -107,32 +113,31 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const existingTitles = await ST.getExistingTitles(petitionId);
+        if (existingTitles.includes(req.body.title)) {
+            res.status(403).send("Support title not unique within petition");
+            return;
+        }
 
-        const title = req.body.hasOwnProperty("tier") ? req.body.title : tier.title;
+        const title = req.body.hasOwnProperty("title") ? req.body.title : tier.title;
         const description = req.body.hasOwnProperty("description") ? req.body.description : tier.description;
         const cost = req.body.hasOwnProperty("cost") ? req.body.cost : tier.cost;
+
+        const numOfSupporter = await ST.getNumOfSupporter(tierId);
+        if (numOfSupporter > 0) {
+            res.status(403).send("Can not edit a supporter tier if a supporter already exists for it");
+            return;
+        }
+
         const Tier = {
             title,
             description,
-            cost,
-            id: tierId
+            cost
         }
 
         const validation = await validate(schemas.support_tier_post, Tier);
         if (validation !== true) {
             res.status(400).send("Bad Request. Invalid information");
-            return;
-        }
-
-        const existingTitles = await ST.getExistingTitles(petitionId);
-        if (existingTitles.includes(title)) {
-            res.status(403).send("Support title not unique within petition");
-            return;
-        }
-
-        const numOfSupporter = await ST.getNumOfSupporter(tierId);
-        if (numOfSupporter > 0) {
-            res.status(403).send("Can not edit a supporter tier if a supporter already exists for it");
             return;
         }
 
@@ -154,7 +159,7 @@ const editSupportTier = async (req: Request, res: Response): Promise<void> => {
 }
 
 const deleteSupportTier = async (req: Request, res: Response): Promise<void> => {
-    if (isNaN(parseInt(req.params.id, 10)) !== true || isNaN(parseInt(req.params.tierId, 10))  !== true) {
+    if (isNaN(parseInt(req.params.id, 10)) || isNaN(parseInt(req.params.tierId, 10))) {
         res.status(400).send("Bad Request. Invalid information");
         return;
     }
@@ -201,7 +206,7 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const result = ST.deleteSupportTier(tierId);
+        const result = await ST.deleteSupportTier(tierId);
         if (result) {
             res.status(200).send("OK");
             return;

@@ -57,7 +57,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const mimeType = req.headers["content-type"];
-        const img = req.body;
+        const image = req.body;
         const fileExt = getImageExtension(mimeType);
         if (fileExt === null) {
             res.statusMessage = 'Bad Request: Invalid image supplied (possibly incorrect file type';
@@ -66,13 +66,13 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         }
         const user = result[0];
         if (user.image_filename === null) {
-            const imgName = await saveImage(img, fileExt);
-            users.updateUserByColAttribute(imgName, "image_filename", id);
+            const imageName = await saveImage(image, fileExt);
+            users.updateUserByColAttribute(imageName, "image_filename", id);
             res.status(201).send("Created. New image created");
             return;
         } else {
-            const imgName = await saveImage(img, fileExt);
-            users.updateUserByColAttribute(imgName, "image_filename", id);
+            const imageName = await saveImage(image, fileExt);
+            users.updateUserByColAttribute(imageName, "image_filename", id);
             res.status(201).send("OK. Image updated");
             return;
         }

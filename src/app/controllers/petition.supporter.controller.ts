@@ -20,7 +20,14 @@ const getAllSupportersForPetition = async (req: Request, res: Response): Promise
             return;
         }
 
-        const result = await Supporter.getSupportTierByPetitionId(petitionId);
+        const supporters = await Supporter.getSupportTierByPetitionId(petitionId);
+        if (supporters.length !== 0) {
+            res.status(200).send(supporters);
+            return;
+        } else {
+            res.status(500).send("Internal Server Error");
+            return;
+        }
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";
@@ -30,24 +37,30 @@ const getAllSupportersForPetition = async (req: Request, res: Response): Promise
 }
 
 const addSupporter = async (req: Request, res: Response): Promise<void> => {
-    if (isNaN(parseInt(req.params.id, 10)) === true) {
+    if (isNaN(parseInt(req.params.id, 10))) {
         res.status(400).send("Bad Request. Invalid information");
         return;
     }
     try{
         const validPetitions = await Petition.getPetitionIds();
         const petitionId = req.params.id;
-        const petition = await Petition.getOne(petitionId);
 
         if (!validPetitions.includes(petitionId)) {
             res.status(404).send("Not Found. No petition with id");
             return;
         }
+        const petition = await Petition.getOne(petitionId);
 
+        const tierId = req.body.supportTierId;
         const validTiers = await ST.getValidSupportTierIds(petitionId);
-        const tierId =  req.body.supportTierId;
-        if (!validTiers.includes(tierId)) {
-            res.status(404).send("Not Found. Support does not exist");
+
+        if (tierId !== undefined) {
+            if (!validTiers.includes(tierId.toString())) {
+                res.status(404).send("Not Found. Support does not exist");
+                return;
+            }
+        } else {
+            res.status(400).send("Bad Request. Invalid information");
             return;
         }
 

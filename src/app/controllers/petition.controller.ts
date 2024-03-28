@@ -133,7 +133,7 @@ const addPetition = async (req: Request, res: Response): Promise<void> => {
         const petitionId = result.insertId;
         if (result) {
             for (const s of supportTiers) {
-                const supportTierResult = await insertSupportTier(petitionId, s.title, s.description, s.cost);
+                const supportTierResult = await insertSupportTier(petitionId.toString(), s.title, s.description, s.cost);
             }
             res.status(201).send({"petitionId": petitionId});
             return;
@@ -182,23 +182,23 @@ const editPetition = async (req: Request, res: Response): Promise<void> => {
         }
 
         if (req.body.hasOwnProperty("categoryId")) {
+            categoryId = req.body.categoryId;
             const validCategories = await Petition.getCategoryIds();
             if (!validCategories.includes(categoryId)) {
                 res.status(400).send("Bad Request. Invalid information");
                 return;
             }
-            categoryId = req.body.categoryId;
         } else {
             categoryId = petition.categoryId;
         }
 
         if (req.body.hasOwnProperty("title")) {
             const existingPetitionTitles = await Petition.getPetitionTitles();
+            title = req.body.title;
             if (existingPetitionTitles.includes(title)) {
                 res.status(403).send("Petition title already exists");
                 return;
             }
-            title = req.body.title;
         } else {
             title = petition.title;
         }

@@ -13,13 +13,7 @@ async function checkEmailExist(email: string): Promise<boolean> {
     })
 }
 
-const insert = async (firstName: string, lastName:
-    string, email: string, password: string): Promise<ResultSetHeader> => {
-    Logger.info(`inserting user
-                first name: ${firstName}
-                last name; ${lastName}
-                email: ${email}
-                password: ${password}`);
+const insert = async (firstName: string, lastName: string, email: string, password: string): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     const query = `INSERT INTO user (first_name, last_name, email, password)
                     VALUES( ?, ?, ?, ? )`;
