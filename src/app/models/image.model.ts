@@ -3,7 +3,7 @@ import {getImageMimetype} from "../services/imageTools";
 import Logger from '../../config/logger';
 import { generate } from "rand-token";
 
-const filepath = './storage/images';
+const filepath = './storage/images/';
 
 const readImage = async (fileName: string): Promise<[Buffer, string]> => {
     const image = await fs.readFile(filepath + fileName);

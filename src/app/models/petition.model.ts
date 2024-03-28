@@ -199,10 +199,10 @@ const addPetition = async (title: string, description: string, date: string, own
     return result;
 }
 
-const getPetitionOwnerId = async (petitionId: string): Promise<number> => {
-    const query = `SELECT owner_id FROM petition WHERE id = ${petitionId}`;
+const getPetitionOwnerId = async (petitionId: string): Promise<string> => {
+    const query = `SELECT owner_id as ownerId FROM petition WHERE id = ${petitionId}`;
     const rows = await getPool().query(query);
-    return rows[0].length === 0 ? null : rows[0][0].owner_id;
+    return rows[0].length === 0 ? null : rows[0][0].ownerId;
 }
 
 const editPetition = async (petitionId: string, title: string, description: string, categoryId: number): Promise<boolean> => {
@@ -233,7 +233,7 @@ const getNumOfSupporter = async(petitionId: string): Promise<number> => {
 const getPetitionImageName = async (petitionId: string): Promise<string> => {
     const query = `SELECT image_filename FROM petition WHERE id = ?`;
     const [rows] = await getPool().query(query, petitionId);
-    return rows[0];
+    return rows[0].image_filename;
 }
 
 const updatePetitionImage = async (imageName: string,petitionId: string): Promise<boolean> => {

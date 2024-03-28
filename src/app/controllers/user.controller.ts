@@ -126,7 +126,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
             "lastName": user.last_name});
             return;
         }
-        
+
     } catch (err) {
         Logger.error(err);
         res.statusMessage = "Internal Server Error";

@@ -43,15 +43,16 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
         return;
     }
     try{
-        const id = req.params.id;
+        const petitionId = req.params.id;
         const authId =req.headers.authenticatedUserId;
         const validPetitions = await Petition.getPetitionIds();
-        if (!validPetitions.includes(id)) {
+        if (!validPetitions.includes(petitionId)) {
             res.status(404).send("Not Found. No petition with id");
             return;
         }
 
-        if (id !== authId) {
+        const ownerId = await Petition.getPetitionOwnerId(petitionId);
+        if (ownerId.toString() !== authId) {
             res.status(403).send("Forbidden. Only the owner of a petition can change the hero image");
             return;
         }
@@ -65,10 +66,10 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const imageName = await Petition.getPetitionImageName(id);
+        const imageName = await Petition.getPetitionImageName(petitionId);
         if (imageName === null) {
             const newImageName = await saveImage(img, fileExt);
-            const result = await Petition.updatePetitionImage(newImageName, id);
+            const result = await Petition.updatePetitionImage(newImageName, petitionId);
             if (result) {
                 res.status(201).send("OK. Image added");
                 return;
@@ -78,9 +79,9 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
             }
         } else {
             const newImageName = await saveImage(img, fileExt);
-            const result = await Petition.updatePetitionImage(newImageName, id);
+            const result = await Petition.updatePetitionImage(newImageName, petitionId);
             if (result) {
-                res.status(201).send("OK. Image updated");
+                res.status(200).send("OK. Image updated");
                 return;
             } else {
                 res.status(500).send("Internal Server Error");

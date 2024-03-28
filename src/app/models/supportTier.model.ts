@@ -45,7 +45,7 @@ const getSupportTierById = async (supportTierId: string): Promise<supportTier> =
 
 const deleteSupportTier = async (supportTierId: string): Promise<boolean> => {
     const query = `DELETE FROM support_tier WHERE id = ?`;
-    const result = await getPool().query(query, supportTierId);
+    const [result] = await getPool().query(query, supportTierId);
     return result && result.affectedRows === 1;
 }
 

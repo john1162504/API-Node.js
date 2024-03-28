@@ -223,10 +223,6 @@ const deleteSupportTier = async (req: Request, res: Response): Promise<void> => 
     }
 }
 
-const checkTitleValidation = async (petitionId: string, newTitle: string): Promise<boolean> => {
-    const titles = await ST.getExistingTitles(petitionId);
-    return titles.length < 3 && !titles.includes(newTitle);
-}
 
 function hasUniqueTitles(supportTiers: supportTier[]): boolean {
     const titlesSet = new Set<string>();
@@ -240,4 +236,4 @@ function hasUniqueTitles(supportTiers: supportTier[]): boolean {
 }
 
 
-export {addSupportTier, editSupportTier, deleteSupportTier, checkTitleValidation, hasUniqueTitles};
+export {addSupportTier, editSupportTier, deleteSupportTier, hasUniqueTitles};
