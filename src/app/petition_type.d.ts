@@ -1,4 +1,4 @@
-type petition = { 
+type petition = {
     petitionId: number,
     title: string,
     categoryId: number,
@@ -9,7 +9,7 @@ type petition = {
     creationDate: string,
     supportingCost: number,
     description: string,
-    moneyRasied: number,
+    moneyRaised: number,
     supportTiers: supportTier[]
 }
 
@@ -17,7 +17,7 @@ type petitionSearchQuery = {
     startIndex: number,
     count: number,
     q: string,
-    categoryIds: Array<number>,
+    categoryIds: number[],
     supportingCost: number,
     ownerId: number,
     supporterId: number,

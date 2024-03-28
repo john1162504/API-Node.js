@@ -1,5 +1,4 @@
 import {getPool} from "../../config/db";
-import Logger from '../../config/logger';
 import { ResultSetHeader } from "mysql2";
 
 const viewAll = async (searchQuery: petitionSearchQuery): Promise<petitionReturn> => {
@@ -134,9 +133,9 @@ const getOne = async (petitionId: string): Promise<petition> => {
     const [rows] = await getPool().query(petitionQuery, petitionId);
     const petition = rows[0];
 
-    const moneyRasiedQuery =
+    const moneyRaisedQuery =
     `SELECT
-        COALESCE(SUM(cost), 0) AS moneyRasied
+        COALESCE(SUM(cost), 0) AS moneyRaised
     FROM
         supporter S
     INNER JOIN
@@ -146,8 +145,8 @@ const getOne = async (petitionId: string): Promise<petition> => {
     WHERE
         ST.petition_id = ?
 `;
-    const [moneyRows] = await getPool().query(moneyRasiedQuery, petitionId);
-    const moneyRasied = moneyRows[0].moneyRasied;
+    const [moneyRows] = await getPool().query(moneyRaisedQuery, petitionId);
+    const moneyRaised = moneyRows[0].moneyRaised;
 
     const supportTierQuery =
     `SELECT
@@ -164,7 +163,7 @@ const getOne = async (petitionId: string): Promise<petition> => {
         `
     const [tiersRows] = await getPool().query(supportTierQuery, petitionId);
     const supportTier = tiersRows;
-    petition.moneyRasied = moneyRasied;
+    petition.moneyRaised = moneyRaised;
     petition.supportTiers = supportTier;
     return petition;
 }

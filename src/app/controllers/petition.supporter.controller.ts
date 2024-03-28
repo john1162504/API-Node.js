@@ -73,8 +73,8 @@ const addSupporter = async (req: Request, res: Response): Promise<void> => {
         }
 
         const supportingTiers = await Supporter.getSupportingTiers(authId.toString());
-        if (supportingTiers.includes(tierId)) {
-            res.status(403).send("Forbidden. Already supoorted at this tier");
+        if (supportingTiers.includes(tierId.toString())) {
+            res.status(403).send("Forbidden. Already supported at this tier");
             return;
         }
 

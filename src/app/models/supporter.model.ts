@@ -1,6 +1,5 @@
 import {getPool} from "../../config/db";
-import Logger from '../../config/logger';
-import { ResultSetHeader } from "mysql2";
+
 
 const getSupportTierByPetitionId = async (petitionId: string): Promise<supportTier[]> => {
     const query = `
@@ -28,7 +27,7 @@ const getSupportTierByPetitionId = async (petitionId: string): Promise<supportTi
 }
 
 const getSupportingTiers = async (userId: string): Promise<string[]> => {
-    const query = `SELECT support_tier_id FROM supporter where user_id = ?`;
+    const query = `SELECT support_tier_id as id FROM supporter where user_id = ?`;
     const rows = await getPool().query(query, userId);
     const data = rows[0];
     const ids: string[] = data.map((obj: { id: string; }) => String(obj.id));
