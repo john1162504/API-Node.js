@@ -7,11 +7,11 @@ import * as encrypt from '../services/passwords'
 import {uid} from 'rand-token';
 
 const register = async (req: Request, res: Response): Promise<void> => {
-    const firstName = req.body.firstName;
-    const lastName = req.body.lastName;
-    const email = req.body.email;
-    const password = await encrypt.hash(req.body.password);
     try{
+        const firstName = req.body.firstName;
+        const lastName = req.body.lastName;
+        const email = req.body.email;
+        const password = await encrypt.hash(req.body.password);
         if (await users.checkEmailExist(email)) {
             res.statusMessage = "Forbidden. Email already in use";
             res.status(403).send();
